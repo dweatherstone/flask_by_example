@@ -87,3 +87,5 @@ nltk_data/tokenizers/punkt/PY3/spanish.pickle
 nltk_data/tokenizers/punkt/PY3/swedish.pickle
 nltk_data/tokenizers/punkt/PY3/turkish.pickle
 nltk_data/tokenizers/punkt.zip
+notes.txt
+dump.rdb

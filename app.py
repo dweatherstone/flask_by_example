@@ -5,6 +5,7 @@ import requests
 import operator
 import re
 import nltk
+import json
 from stop_words import stops
 from collections import Counter
 from bs4 import BeautifulSoup
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
 q = Queue(connection=conn)
+
 
 from models import Result
 
@@ -63,22 +65,22 @@ def count_and_save_words(url):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    return render_template('index.html')
     
-    results = {}
-    if request.method == 'POST':
-        # this import solves a rq bug which currently exists
-        from app import count_and_save_words
-
-        # get url that the user has entered
-        url = request.form['url']
-        if not url[:8].startswith(('https://', 'http://')):
-            url = 'http://' + url
-        job = q.enqueue_call(
-            func=count_and_save_words, args=(url,), result_ttl=5000
-        )
-        print(job.get_id())
+@app.route('/start', methods=['POST'])
+def get_counts():
+    # get url
+    data = json.loads(request.data.decode())
+    url = data["url"]
+    if not url[:8].startswith(('https://', 'http://')):
+        url = 'http://' + url
+    # start job
+    job = q.enqueue_call(
+        func=count_and_save_words, args=(url,), result_ttl=5000
+    )
+    print(job.get_id())
             
-    return render_template('index.html', results=results)
+    return job.get_id()
 
 @app.route('/results/<job_key>', methods=['GET'])
 def get_results(job_key):
